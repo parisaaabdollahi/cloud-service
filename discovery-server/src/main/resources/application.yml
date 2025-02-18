@@ -1,0 +1,17 @@
+server:
+  port: 8761
+
+eureka:
+  instance:
+    prefer-ip-address: false
+    hostname: myserver
+  client:
+    register-with-eureka: false # The discovery server does not register itself
+    fetch-registry: false       # The discovery server does not fetch the registry
+    service-url:
+      defaultZone: http://myserver:8082/eureka
+  server:
+    enable-self-preservation: false # Disable self-preservation for local testing
+logging:
+  level:
+    org.springframework.cloud.netflix.eureka: DEBUG
