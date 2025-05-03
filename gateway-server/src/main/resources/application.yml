@@ -1,19 +1,59 @@
 server:
   port: 8080
 
+
 spring:
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
       routes:
-        - id: customer-service-route
-          uri: lb://customer-service # Load balanced URI to `customer-service`
+        - id: user-service
+          uri: lb://user-service
           predicates:
-            - Path=/customers/**
+            - Path=/user-service/user
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /${segment}
 
+        - id: user-service-login
+          uri: lb://user-service
+          predicates:
+            - Path=/user-service/user/login
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/user/login, /user/login
 
+        - id: user-service-status
+          uri: lb://user-service
+          predicates:
+            - Path=/user-service/user/status/check
+            - Method=GET
+            - Header=Authorization, Bearer (.*)
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/user/status/check, /user/status/check
+            - AuthorizationHeaderFilter
+
+        - id: user-service-get-update-delete
+          uri: lb://user-service
+          predicates:
+            - Path=/user-service/user/**
+            - Method=GET,PUT,DELETE
+            - Header=Authorization, Bearer (.*)
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter
+
+        - id: user-service-actuator
+          uri: lb://user-service
+          predicates:
+            - Path=/user-service/actuator/**
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /${segment}
 
 eureka:
   client:
